@@ -5,7 +5,7 @@ use std::cmp;
 use std::sync::Arc;
 
 use cosmic::{
-    Element, cosmic_theme,
+    Apply, Element, cosmic_theme,
     iced::{Alignment, Length, Size},
     theme, widget,
 };
@@ -72,24 +72,21 @@ pub fn package_card_view<'a>(
         Some(icon) => widget::icon::icon(icon.clone())
             .size(ICON_SIZE_PACKAGE)
             .into(),
-        None => widget::space::horizontal()
-            .width(Length::Fixed(ICON_SIZE_PACKAGE as f32))
-            .into(),
+        None => widget::space::horizontal().width(ICON_SIZE_PACKAGE).into(),
     };
 
-    widget::container(
-        widget::row::with_capacity(2)
-            .push(icon)
-            .push(column)
-            .align_y(Alignment::Center)
-            .spacing(spacing.space_s),
-    )
-    .align_y(Alignment::Center)
-    .width(width as f32)
-    .height(height)
-    .padding([spacing.space_xxs, spacing.space_s])
-    .class(theme::Container::Card)
-    .into()
+    widget::row::with_capacity(2)
+        .push(icon)
+        .push(column)
+        .align_y(Alignment::Center)
+        .spacing(spacing.space_s)
+        .apply(widget::container)
+        .align_y(Alignment::Center)
+        .width(width as f32)
+        .height(height)
+        .padding([spacing.space_xxs, spacing.space_s])
+        .class(theme::Container::Card)
+        .into()
 }
 
 impl Package {
@@ -521,8 +518,7 @@ impl App {
                 if !selected.addons.is_empty() {
                     let mut addon_col = widget::column::with_capacity(2).spacing(space_xxxs);
                     addon_col = addon_col.push(widget::text::title4(fl!("addons")));
-                    let mut list = widget::list_column()
-                        .divider_padding(0)
+                    let mut list = widget::list_column::with_capacity(selected.addons.len())
                         .list_item_padding([space_xxs, 0])
                         .style(theme::Container::Transparent);
                     let addon_cnt = selected.addons.len();

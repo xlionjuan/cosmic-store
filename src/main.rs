@@ -2324,13 +2324,9 @@ impl Application for App {
                 .title(fl!("place-applet"))
                 .body(fl!("place-applet-desc"))
                 .control(
-                    widget::row::with_capacity(1).push(
-                        cosmic::widget::segmented_control::horizontal(
-                            &self.applet_placement_buttons,
-                        )
+                    cosmic::widget::segmented_control::horizontal(&self.applet_placement_buttons)
                         .on_activate(Message::SelectPlacement)
                         .minimum_button_width(0),
-                    ),
                 )
                 .primary_action(
                     widget::button::suggested(fl!("place-and-refine"))
