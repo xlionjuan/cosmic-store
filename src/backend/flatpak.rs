@@ -65,19 +65,17 @@ impl Flatpak {
 
             // Update appstream if not found
             let mut update_appstream = !appstream_dir.is_dir();
-            if !update_appstream {
-                if let Some(age) = remote
+            if !update_appstream
+                && let Some(age) = remote
                     .appstream_timestamp(None)
                     .and_then(|x| x.path())
                     .and_then(|x| fs::metadata(x).ok())
                     .and_then(|x| x.modified().ok())
                     .and_then(|x| x.elapsed().ok())
-                {
-                    if age.as_secs() > 3600 {
-                        // Update appstream if more than one hour old
-                        update_appstream = true;
-                    }
-                }
+                && age.as_secs() > 3600
+            {
+                // Update appstream if more than one hour old
+                update_appstream = true;
             }
 
             if update_appstream {
@@ -512,10 +510,8 @@ impl Backend for Flatpak {
                         tx.add_uninstall(r_str)?;
 
                         // If purge_data is requested, collect app IDs for later deletion
-                        if *purge_data {
-                            if let Some(app_id) = r.name() {
-                                app_ids_to_purge.push(app_id.to_string());
-                            }
+                        if *purge_data && let Some(app_id) = r.name() {
+                            app_ids_to_purge.push(app_id.to_string());
                         }
                     }
                 }
@@ -592,7 +588,7 @@ impl Backend for Flatpak {
                                         ) == 0
                                         {
                                             let error_message = if error.is_null() {
-                                                format!("unspecified error")
+                                                "unspecified error".to_string()
                                             } else {
                                                 libflatpak::glib::Error::from_glib_ptr_borrow(
                                                     &error,

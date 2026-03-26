@@ -221,7 +221,7 @@ impl Packagekit {
                     description: tx_detail.description.clone(),
                     pkgnames: vec![package_name.to_string()],
                     urls: if !tx_detail.url.is_empty() {
-                        vec![AppUrl::Homepage(tx_detail.url.to_string())]
+                        vec![AppUrl::Homepage(tx_detail.url)]
                     } else {
                         Vec::new()
                     },
@@ -358,12 +358,12 @@ impl Backend for Packagekit {
                 // Build a map of package name to installed version
                 for tx_package in tx_packages {
                     let mut parts = tx_package.package_id.split(';');
-                    if let Some(pkg_name) = parts.next() {
-                        if let Some(version) = parts.next() {
-                            package
-                                .extra
-                                .insert(format!("{}_installed", pkg_name), version.to_string());
-                        }
+                    if let Some(pkg_name) = parts.next()
+                        && let Some(version) = parts.next()
+                    {
+                        package
+                            .extra
+                            .insert(format!("{}_installed", pkg_name), version.to_string());
                     }
                 }
             }
@@ -401,10 +401,10 @@ impl Backend for Packagekit {
         let (_tx_details, tx_packages) = transaction_handle(tx, |_, _| {})?;
 
         // Convert packages to details in order to show more information
-        let mut package_ids = Vec::with_capacity(tx_packages.len());
-        for tx_package in tx_packages.iter() {
-            package_ids.push(tx_package.package_id.as_str());
-        }
+        let package_ids = tx_packages
+            .iter()
+            .map(|p| p.package_id.as_str())
+            .collect::<Vec<_>>();
         let tx = self.transaction()?;
         tx.get_details(&package_ids)?;
         self.package_transaction(tx)
@@ -444,10 +444,10 @@ impl Backend for Packagekit {
             tx.resolve(filter, &package_names)?;
             transaction_handle(tx, |_, _| {})?
         };
-        let mut package_ids = Vec::with_capacity(package_names.len());
-        for tx_package in tx_packages.iter() {
-            package_ids.push(tx_package.package_id.as_str());
-        }
+        let package_ids = tx_packages
+            .iter()
+            .map(|p| p.package_id.as_str())
+            .collect::<Vec<_>>();
         let tx = self.transaction()?;
         tx.set_hints(&["interactive=true"])?;
         match &op.kind {

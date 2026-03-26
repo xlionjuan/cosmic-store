@@ -2,7 +2,7 @@ use cosmic::widget;
 use std::{collections::HashMap, error::Error, fmt::Write, fs, sync::Arc};
 
 use super::{Backend, Package};
-use crate::{AppId, AppInfo, AppUrl, AppstreamCache, Operation, OperationKind};
+use crate::{AppId, AppInfo, AppstreamCache, Operation};
 
 #[derive(Debug)]
 pub struct Pkgar {
@@ -25,7 +25,7 @@ impl Pkgar {
 }
 
 impl Backend for Pkgar {
-    fn load_caches(&mut self, refresh: bool) -> Result<(), Box<dyn Error>> {
+    fn load_caches(&mut self, _refresh: bool) -> Result<(), Box<dyn Error>> {
         for appstream_cache in self.appstream_caches.iter_mut() {
             appstream_cache.reload();
         }
@@ -52,7 +52,7 @@ impl Backend for Pkgar {
                 match appstream_cache.pkgnames.get(package_name) {
                     Some(ids) => {
                         for id in ids.iter() {
-                            match appstream_cache.infos.get(&id) {
+                            match appstream_cache.infos.get(id) {
                                 Some(info) => {
                                     packages.push(Package {
                                         id: id.clone(),
@@ -117,14 +117,14 @@ impl Backend for Pkgar {
         Ok(Vec::new())
     }
 
-    fn file_packages(&self, path: &str) -> Result<Vec<Package>, Box<dyn Error>> {
+    fn file_packages(&self, _path: &str) -> Result<Vec<Package>, Box<dyn Error>> {
         Err("Pkgar::file_packages not implemented".into())
     }
 
     fn operation(
         &self,
-        op: &Operation,
-        mut f: Box<dyn FnMut(f32) + 'static>,
+        _op: &Operation,
+        _f: Box<dyn FnMut(f32) + 'static>,
     ) -> Result<(), Box<dyn Error>> {
         Err("Pkgar::operation not implemented".into())
     }

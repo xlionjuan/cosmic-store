@@ -600,46 +600,46 @@ impl AppstreamCache {
             .children
             .par_iter()
             .filter_map(|node| {
-                if let xmltree::XMLNode::Element(e) = node {
-                    if &*e.name == "component" {
-                        match Component::try_from(e) {
-                            Ok(component) => {
-                                match component.kind {
-                                    ComponentKind::DesktopApplication => {}
-                                    ComponentKind::Addon => {
-                                        addons.lock().unwrap().push(component);
-                                        return None;
-                                    }
-                                    _ => {
-                                        // Skip anything that is not a desktop application or addon
-                                        //TODO: should we allow more components?
-                                        return None;
-                                    }
+                if let xmltree::XMLNode::Element(e) = node
+                    && &*e.name == "component"
+                {
+                    match Component::try_from(e) {
+                        Ok(component) => {
+                            match component.kind {
+                                ComponentKind::DesktopApplication => {}
+                                ComponentKind::Addon => {
+                                    addons.lock().unwrap().push(component);
+                                    return None;
                                 }
+                                _ => {
+                                    // Skip anything that is not a desktop application or addon
+                                    //TODO: should we allow more components?
+                                    return None;
+                                }
+                            }
 
-                                let id = AppId::new(&component.id.0);
-                                let monthly_downloads = stats::monthly_downloads(&id).unwrap_or(0);
-                                return Some((
-                                    id,
-                                    Arc::new(AppInfo::new(
-                                        &self.source_id,
-                                        &self.source_name,
-                                        origin_opt.map(|x| x.as_str()),
-                                        component,
-                                        &self.locale,
-                                        monthly_downloads,
-                                    )),
-                                ));
-                            }
-                            Err(err) => {
-                                log::error!(
-                                    "failed to parse {:?} in {:?}: {}",
-                                    e.get_child("id")
-                                        .and_then(|x| appstream::AppId::try_from(x).ok()),
-                                    path,
-                                    err
-                                );
-                            }
+                            let id = AppId::new(&component.id.0);
+                            let monthly_downloads = stats::monthly_downloads(&id).unwrap_or(0);
+                            return Some((
+                                id,
+                                Arc::new(AppInfo::new(
+                                    &self.source_id,
+                                    &self.source_name,
+                                    origin_opt.map(|x| x.as_str()),
+                                    component,
+                                    &self.locale,
+                                    monthly_downloads,
+                                )),
+                            ));
+                        }
+                        Err(err) => {
+                            log::error!(
+                                "failed to parse {:?} in {:?}: {}",
+                                e.get_child("id")
+                                    .and_then(|x| appstream::AppId::try_from(x).ok()),
+                                path,
+                                err
+                            );
                         }
                     }
                 }
@@ -975,8 +975,7 @@ impl AppstreamCache {
                                     let mut images = Vec::new();
                                     if let Some(source_image) =
                                         screenshot.get("source-image").and_then(|x| x.as_mapping())
-                                    {
-                                        if let Some(path_str) = source_image["url"].as_str() {
+                                        && let Some(path_str) = source_image["url"].as_str() {
                                             let url_str = match &media_base_url_opt {
                                                 Some(media_base_url) => {
                                                     //TODO: join using url crate?
@@ -1002,7 +1001,6 @@ impl AppstreamCache {
                                                 }
                                             }
                                         }
-                                    }
 
                                     //TODO: thumbnails
 

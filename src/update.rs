@@ -112,10 +112,10 @@ impl App {
                 return Task::batch([self.update_scroll(), self.load_category_icons(categories)]);
             }
             Message::CategoryIconsLoaded(categories, icons) => {
-                if let Some((cats, results)) = &mut self.category_results {
-                    if *cats == categories {
-                        apply_icons_to_results(results, icons);
-                    }
+                if let Some((cats, results)) = &mut self.category_results
+                    && *cats == categories
+                {
+                    apply_icons_to_results(results, icons);
                 }
             }
             Message::CheckUpdates | Message::PeriodicUpdateCheck => {
@@ -298,10 +298,10 @@ impl App {
                     let sources_opt = self.selected_opt.as_ref().map(|selected| {
                         self.selected_sources(selected.backend_name, &selected.id, &selected.info)
                     });
-                    if let Some(sources) = sources_opt {
-                        if let Some(selected) = &mut self.selected_opt {
-                            selected.sources = sources;
-                        }
+                    if let Some(sources) = sources_opt
+                        && let Some(selected) = &mut self.selected_opt
+                    {
+                        selected.sources = sources;
                     }
                 }
 
@@ -372,15 +372,14 @@ impl App {
                     && !modifiers.control()
                     && !modifiers.alt()
                     && matches!(key, Key::Character(_))
+                    && let Some(text) = text
                 {
-                    if let Some(text) = text {
-                        self.search_active = true;
-                        self.search_input.push_str(&text);
-                        return Task::batch([
-                            widget::text_input::focus(self.search_id.clone()),
-                            self.search(),
-                        ]);
-                    }
+                    self.search_active = true;
+                    self.search_input.push_str(&text);
+                    return Task::batch([
+                        widget::text_input::focus(self.search_id.clone()),
+                        self.search(),
+                    ]);
                 }
             }
             Message::LaunchUrl(url) => match open::that_detached(&url) {
@@ -673,10 +672,10 @@ impl App {
                 }
             }
             Message::SearchIconsLoaded(input, icons) => {
-                if let Some((query, results)) = &mut self.search_results {
-                    if *query == input {
-                        apply_icons_to_results(results, icons);
-                    }
+                if let Some((query, results)) = &mut self.search_results
+                    && *query == input
+                {
+                    apply_icons_to_results(results, icons);
                 }
             }
             Message::SearchSubmit(_search_input) => {
@@ -789,14 +788,13 @@ impl App {
                 }
             }
             Message::SelectedScreenshot(i, url, data) => {
-                if let Some(selected) = &mut self.selected_opt {
-                    if let Some(screenshot) = selected.info.screenshots.get(i) {
-                        if screenshot.url == url {
-                            selected
-                                .screenshot_images
-                                .insert(i, widget::image::Handle::from_bytes(data));
-                        }
-                    }
+                if let Some(selected) = &mut self.selected_opt
+                    && let Some(screenshot) = selected.info.screenshots.get(i)
+                    && screenshot.url == url
+                {
+                    selected
+                        .screenshot_images
+                        .insert(i, widget::image::Handle::from_bytes(data));
                 }
             }
             Message::SelectedScreenshotShown(i) => {
@@ -810,29 +808,29 @@ impl App {
             Message::SelectedSource(i) => {
                 //TODO: show warnings if anything is not found?
                 let mut next_ids = None;
-                if let Some(selected) = &self.selected_opt {
-                    if let Some(source) = selected.sources.get(i) {
-                        next_ids = Some((
-                            source.backend_name,
-                            source.source_id.clone(),
-                            selected.id.clone(),
-                        ));
-                    }
+                if let Some(selected) = &self.selected_opt
+                    && let Some(source) = selected.sources.get(i)
+                {
+                    next_ids = Some((
+                        source.backend_name,
+                        source.source_id.clone(),
+                        selected.id.clone(),
+                    ));
                 }
 
                 //TODO: can this be simplified?
                 if let Some((backend_name, source_id, id)) = next_ids {
                     if let Some(backend) = self.backends.get(&backend_name) {
                         for appstream_cache in backend.info_caches() {
-                            if appstream_cache.source_id == source_id {
-                                if let Some(info) = appstream_cache.infos.get(&id) {
-                                    return self.select(
-                                        backend_name,
-                                        id,
-                                        Some(appstream_cache.icon(info)),
-                                        info.clone(),
-                                    );
-                                }
+                            if appstream_cache.source_id == source_id
+                                && let Some(info) = appstream_cache.infos.get(&id)
+                            {
+                                return self.select(
+                                    backend_name,
+                                    id,
+                                    Some(appstream_cache.icon(info)),
+                                    info.clone(),
+                                );
                             }
                         }
                     }
@@ -971,20 +969,19 @@ impl App {
                 // check if the applet is already added to the panel
                 let applet_id = id.raw().to_owned();
                 let mut applet_exists = false;
-                if let Some(center) = applet_config.plugins_center.as_ref() {
-                    if center.iter().any(|a: &String| a.as_str() == applet_id) {
-                        applet_exists = true;
-                    }
+                if let Some(center) = applet_config.plugins_center.as_ref()
+                    && center.iter().any(|a: &String| a.as_str() == applet_id)
+                {
+                    applet_exists = true;
                 }
-                if let Some(wings) = applet_config.plugins_wings.as_ref() {
-                    if wings
+                if let Some(wings) = applet_config.plugins_wings.as_ref()
+                    && wings
                         .0
                         .iter()
                         .chain(wings.1.iter())
                         .any(|a: &String| a.as_str() == applet_id)
-                    {
-                        applet_exists = true;
-                    }
+                {
+                    applet_exists = true;
                 }
 
                 // if applet doesn't already exist, continue adding

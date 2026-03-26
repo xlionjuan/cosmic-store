@@ -570,17 +570,17 @@ impl App {
             .filter_map(|(id, infos)| {
                 let mut best_weight: Option<i64> = None;
                 for AppEntry {
-                    backend_name,
+                    backend_name: _,
                     info,
                     installed,
                 } in infos.iter()
                 {
                     if let Some(weight) = filter_map(id, info, *installed) {
                         // Skip if best weight has equal or lower weight
-                        if let Some(prev_weight) = best_weight {
-                            if prev_weight <= weight {
-                                continue;
-                            }
+                        if let Some(prev_weight) = best_weight
+                            && prev_weight <= weight
+                        {
+                            continue;
                         }
 
                         // Replace best weight
@@ -592,7 +592,7 @@ impl App {
                 let AppEntry {
                     backend_name,
                     info,
-                    installed,
+                    installed: _,
                 } = infos.first()?;
                 Some(SearchResult {
                     backend_name: *backend_name,
@@ -1045,43 +1045,44 @@ impl App {
             async move {
                 tokio::task::spawn_blocking(move || {
                     let start = Instant::now();
-                    let results = Self::generic_search(&apps, &backends, |id, info, _installed| {
-                        if !matches!(info.kind, AppKind::DesktopApplication) {
-                            return None;
-                        }
-                        //TODO: improve performance
-                        let stats_weight = |weight: i64| -> i64 {
-                            //TODO: make sure no overflows
-                            (weight << 56) - (info.monthly_downloads as i64)
-                        };
-
-                        //TODO: fuzzy match (nucleus-matcher?)
-                        let regex_weight = |string: &str, weight: i64| -> Option<i64> {
-                            let mat = regex.find(string)?;
-                            if mat.range().start == 0 {
-                                if mat.range().end == string.len() {
-                                    // String equals search phrase
-                                    Some(stats_weight(weight + 0))
-                                } else {
-                                    // String starts with search phrase
-                                    Some(stats_weight(weight + 1))
-                                }
-                            } else {
-                                // String contains search phrase
-                                Some(stats_weight(weight + 2))
+                    let results =
+                        Self::generic_search(&apps, &backends, |_id, info, _installed| {
+                            if !matches!(info.kind, AppKind::DesktopApplication) {
+                                return None;
                             }
-                        };
-                        if let Some(weight) = regex_weight(&info.name, 0) {
-                            return Some(weight);
-                        }
-                        if let Some(weight) = regex_weight(&info.summary, 3) {
-                            return Some(weight);
-                        }
-                        if let Some(weight) = regex_weight(&info.description, 6) {
-                            return Some(weight);
-                        }
-                        None
-                    });
+                            //TODO: improve performance
+                            let stats_weight = |weight: i64| -> i64 {
+                                //TODO: make sure no overflows
+                                (weight << 56) - (info.monthly_downloads as i64)
+                            };
+
+                            //TODO: fuzzy match (nucleus-matcher?)
+                            let regex_weight = |string: &str, weight: i64| -> Option<i64> {
+                                let mat = regex.find(string)?;
+                                if mat.range().start == 0 {
+                                    if mat.range().end == string.len() {
+                                        // String equals search phrase
+                                        Some(stats_weight(weight))
+                                    } else {
+                                        // String starts with search phrase
+                                        Some(stats_weight(weight + 1))
+                                    }
+                                } else {
+                                    // String contains search phrase
+                                    Some(stats_weight(weight + 2))
+                                }
+                            };
+                            if let Some(weight) = regex_weight(&info.name, 0) {
+                                return Some(weight);
+                            }
+                            if let Some(weight) = regex_weight(&info.summary, 3) {
+                                return Some(weight);
+                            }
+                            if let Some(weight) = regex_weight(&info.description, 6) {
+                                return Some(weight);
+                            }
+                            None
+                        });
                     let duration = start.elapsed();
                     log::info!(
                         "searched for {:?} in {:?}, found {} results",
@@ -1713,56 +1714,55 @@ impl App {
             .updates
             .as_deref()
             .and_then(|updates| updates.get(index).map(|(_, package)| package))
+            && package.id.is_system()
         {
-            if package.id.is_system() {
-                // Use pkgnames for most backends, flatpak_refs for flatpak
-                let refs: Vec<&str> = if !package.info.pkgnames.is_empty() {
-                    package.info.pkgnames.iter().map(|s| s.as_str()).collect()
-                } else {
-                    package
-                        .info
-                        .flatpak_refs
-                        .iter()
-                        .map(|s| s.as_str())
-                        .collect()
+            // Use pkgnames for most backends, flatpak_refs for flatpak
+            let refs: Vec<&str> = if !package.info.pkgnames.is_empty() {
+                package.info.pkgnames.iter().map(|s| s.as_str()).collect()
+            } else {
+                package
+                    .info
+                    .flatpak_refs
+                    .iter()
+                    .map(|s| s.as_str())
+                    .collect()
+            };
+
+            // Display list of system packages with version info
+            let mut package_list = widget::column::with_capacity(refs.len()).spacing(space_xxs);
+
+            for ref_name in refs {
+                let installed_version = package
+                    .extra
+                    .get(&format!("{}_installed", ref_name))
+                    .map(|s| s.as_str());
+                let update_version = package
+                    .extra
+                    .get(&format!("{}_update", ref_name))
+                    .map(|s| s.as_str());
+
+                let version_text = match (installed_version, update_version) {
+                    (Some(installed), Some(update)) => {
+                        format!("{}: {} → {}", ref_name, installed, update)
+                    }
+                    (Some(installed), None) => {
+                        format!("{}: {}", ref_name, installed)
+                    }
+                    (None, Some(update)) => {
+                        format!("{}: → {}", ref_name, update)
+                    }
+                    (None, None) => ref_name.to_string(),
                 };
 
-                // Display list of system packages with version info
-                let mut package_list = widget::column::with_capacity(refs.len()).spacing(space_xxs);
-
-                for ref_name in refs {
-                    let installed_version = package
-                        .extra
-                        .get(&format!("{}_installed", ref_name))
-                        .map(|s| s.as_str());
-                    let update_version = package
-                        .extra
-                        .get(&format!("{}_update", ref_name))
-                        .map(|s| s.as_str());
-
-                    let version_text = match (installed_version, update_version) {
-                        (Some(installed), Some(update)) => {
-                            format!("{}: {} → {}", ref_name, installed, update)
-                        }
-                        (Some(installed), None) => {
-                            format!("{}: {}", ref_name, installed)
-                        }
-                        (None, Some(update)) => {
-                            format!("{}: → {}", ref_name, update)
-                        }
-                        (None, None) => ref_name.to_string(),
-                    };
-
-                    package_list = package_list.push(widget::text(version_text));
-                }
-
-                return widget::column::with_capacity(2)
-                    .push(widget::text::title4(fl!("system-package-updates")))
-                    .push(widget::scrollable(package_list))
-                    .width(Length::Fill)
-                    .spacing(space_s)
-                    .into();
+                package_list = package_list.push(widget::text(version_text));
             }
+
+            return widget::column::with_capacity(2)
+                .push(widget::text::title4(fl!("system-package-updates")))
+                .push(widget::scrollable(package_list))
+                .width(Length::Fill)
+                .spacing(space_s)
+                .into();
         }
 
         // Regular package release notes
@@ -1894,17 +1894,17 @@ impl App {
             for other in sources.iter() {
                 if source.backend_name == other.backend_name {
                     // Add other sources required by this source
-                    if source.requires.contains(&other.id) {
-                        if let Some(add) = other.add() {
-                            adds.push(add);
-                        }
+                    if source.requires.contains(&other.id)
+                        && let Some(add) = other.add()
+                    {
+                        adds.push(add);
                     }
 
                     // Remove other sources that require this source
-                    if other.requires.contains(&source.id) {
-                        if let Some(rm) = other.remove() {
-                            rms.push(rm);
-                        }
+                    if other.requires.contains(&source.id)
+                        && let Some(rm) = other.remove()
+                    {
+                        rms.push(rm);
                     }
                 }
             }
@@ -2176,14 +2176,15 @@ impl Application for App {
             self.category_load_start = Some(Instant::now());
             commands.push(self.categories(categories));
         }
-        if let Some(NavPage::Updates) = self.nav_model.active_data::<NavPage>() {
-            if self.updates.is_some() {
-                for (name, backend) in self.backends.clone() {
-                    commands.push(self.update_backend_installed(name.clone(), backend.clone()));
-                    commands.push(self.update_backend_updates(name, backend));
-                }
+        if let Some(NavPage::Updates) = self.nav_model.active_data::<NavPage>()
+            && self.updates.is_some()
+        {
+            for (name, backend) in self.backends.clone() {
+                commands.push(self.update_backend_installed(name.clone(), backend.clone()));
+                commands.push(self.update_backend_updates(name, backend));
             }
         }
+
         Task::batch(commands)
     }
 

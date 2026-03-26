@@ -206,10 +206,10 @@ pub fn preserve_icons_from(old_results: &[SearchResult], new_results: &mut [Sear
         .filter_map(|r| r.icon_opt.as_ref().map(|icon| (&r.id, icon)))
         .collect();
     for result in new_results {
-        if result.icon_opt.is_none() {
-            if let Some(icon) = old_icons.get(&result.id) {
-                result.icon_opt = Some((*icon).clone());
-            }
+        if result.icon_opt.is_none()
+            && let Some(icon) = old_icons.get(&result.id)
+        {
+            result.icon_opt = Some((*icon).clone());
         }
     }
 }

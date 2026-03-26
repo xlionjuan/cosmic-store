@@ -276,12 +276,12 @@ impl App {
         let mut addons = Vec::new();
         if let Some(backend) = self.backends.get(&backend_name) {
             for appstream_cache in backend.info_caches() {
-                if appstream_cache.source_id == info.source_id {
-                    if let Some(ids) = appstream_cache.addons.get(id) {
-                        for id in ids {
-                            if let Some(info) = appstream_cache.infos.get(id) {
-                                addons.push((id.clone(), info.clone()));
-                            }
+                if appstream_cache.source_id == info.source_id
+                    && let Some(ids) = appstream_cache.addons.get(id)
+                {
+                    for id in ids {
+                        if let Some(info) = appstream_cache.infos.get(id) {
+                            addons.push((id.clone(), info.clone()));
                         }
                     }
                 }
@@ -470,14 +470,10 @@ impl App {
                         let mut button = widget::button::icon(
                             widget::icon::from_name("go-previous-symbolic").size(16),
                         );
-                        let index = selected.screenshot_shown.checked_sub(1).unwrap_or_else(|| {
-                            selected
-                                .info
-                                .screenshots
-                                .len()
-                                .checked_sub(1)
-                                .unwrap_or_default()
-                        });
+                        let index = selected
+                            .screenshot_shown
+                            .checked_sub(1)
+                            .unwrap_or_else(|| selected.info.screenshots.len().saturating_sub(1));
                         if index != selected.screenshot_shown {
                             button = button.on_press(Message::SelectedScreenshotShown(index));
                         }
@@ -565,16 +561,15 @@ impl App {
                         "version",
                         version = release.version.as_str()
                     )));
-                    if let Some(timestamp) = release.timestamp {
-                        if let Some(utc) =
+                    if let Some(timestamp) = release.timestamp
+                        && let Some(utc) =
                             chrono::DateTime::<chrono::Utc>::from_timestamp(timestamp, 0)
-                        {
-                            let local = chrono::DateTime::<chrono::Local>::from(utc);
-                            release_col = release_col.push(widget::text::body(format!(
-                                "{}",
-                                local.format("%b %-d, %-Y")
-                            )));
-                        }
+                    {
+                        let local = chrono::DateTime::<chrono::Local>::from(utc);
+                        release_col = release_col.push(widget::text::body(format!(
+                            "{}",
+                            local.format("%b %-d, %-Y")
+                        )));
                     }
                     if let Some(description) = &release.description {
                         release_col = release_col.push(widget::text::body(description));
