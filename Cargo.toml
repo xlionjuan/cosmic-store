@@ -49,7 +49,7 @@ zbus = { version = "5", optional = true }
 # notify feature
 notify-rust = { version = "4", optional = true }
 # packagekit feature
-packagekit-zbus = { version = "0.1", optional = true }
+packagekit-zbus = { version = "0.2", optional = true }
 cosmic-panel-config = { git = "https://github.com/pop-os/cosmic-panel", optional = true }
 freedesktop-desktop-entry = { version = "0.8.1", optional = true }
 switcheroo-control = { git = "https://github.com/pop-os/dbus-settings-bindings", optional = true }

@@ -1,8 +1,13 @@
 use cosmic::widget;
 use packagekit_zbus::{
-    PackageKit::PackageKitProxyBlocking,
-    Transaction::TransactionProxyBlocking,
-    zbus::{blocking::Connection, zvariant},
+    package_kit::PackageKitProxyBlocking,
+    transaction::TransactionProxyBlocking,
+    zbus::{
+        MatchRule,
+        blocking::{Connection, MessageIterator},
+        message::Type,
+        zvariant,
+    },
 };
 use std::{collections::HashMap, error::Error, fmt::Write, sync::Arc};
 
@@ -38,14 +43,24 @@ fn transaction_handle(
 ) -> Result<(Vec<TransactionDetails>, Vec<TransactionPackage>), Box<dyn Error>> {
     let mut details = Vec::new();
     let mut packages = Vec::new();
-    for signal in tx.receive_all_signals()? {
-        if let Some(member) = signal.member() {
+    let inner = tx.inner();
+    let rule = MatchRule::builder()
+        .msg_type(Type::Signal)
+        .interface("org.freedesktop.PackageKit.Transaction")?
+        .path(inner.path())?
+        .build();
+    let iter = MessageIterator::for_match_rule(rule, inner.connection(), None)?;
+
+    for result in iter {
+        let signal = result?;
+        if let Some(member) = signal.header().member() {
             match member.as_str() {
                 "Details" => {
-                    let map = signal.body::<HashMap<String, zvariant::Value>>()?;
-
+                    let map = signal
+                        .body()
+                        .deserialize::<HashMap<String, zvariant::OwnedValue>>()?;
                     let get_string = |key: &str| -> Option<String> {
-                        match map.get(key) {
+                        match map.get(key).map(|v| &**v) {
                             Some(zvariant::Value::Str(str)) => Some(str.to_string()),
                             unknown => {
                                 log::warn!(
@@ -73,14 +88,15 @@ fn transaction_handle(
                 }
                 "ErrorCode" => {
                     // https://www.freedesktop.org/software/PackageKit/gtk-doc/Transaction.html#Transaction::ErrorCode
-                    let (code, details) = signal.body::<(u32, String)>()?;
+                    let (code, details) = signal.body().deserialize::<(u32, String)>()?;
                     if code != 48 {
                         return Err(format!("{details} (code {code})").into());
                     }
                 }
                 "ItemProgress" => {
                     // https://www.freedesktop.org/software/PackageKit/gtk-doc/Transaction.html#Transaction::ItemProgress
-                    let (package_id, status, percentage) = signal.body::<(String, u32, u32)>()?;
+                    let (package_id, status, percentage) =
+                        signal.body().deserialize::<(String, u32, u32)>()?;
                     let total_percentage = tx.percentage().unwrap_or(percentage);
                     on_progress(
                         total_percentage,
@@ -89,20 +105,19 @@ fn transaction_handle(
                             status,
                             percentage,
                         },
-                    )
+                    );
                 }
                 "Package" => {
                     // https://www.freedesktop.org/software/PackageKit/gtk-doc/Transaction.html#Transaction::Package
-                    let (info, package_id, summary) = signal.body::<(u32, String, String)>()?;
+                    let (info, package_id, summary) =
+                        signal.body().deserialize::<(u32, String, String)>()?;
                     packages.push(TransactionPackage {
                         info,
                         package_id,
                         summary,
                     });
                 }
-                "Finished" => {
-                    break;
-                }
+                "Finished" => break,
                 _ => {
                     log::warn!("unknown signal {}", member);
                 }
