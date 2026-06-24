@@ -2068,7 +2068,7 @@ impl Application for App {
             waiting_installed: Vec::new(),
             waiting_updates: Vec::new(),
             category_results: None,
-            category_load_start: None,
+            category_load_start: Some(Instant::now()),
             explore_results: HashMap::new(),
             explore_results_handle: None,
             installed_results: None,
@@ -2172,7 +2172,8 @@ impl Application for App {
             .active_data::<NavPage>()
             .and_then(|nav_page| nav_page.categories())
         {
-            // Start timing category page load
+            // Clear old results and start timing category page load
+            self.category_results = None;
             self.category_load_start = Some(Instant::now());
             commands.push(self.categories(categories));
         }
