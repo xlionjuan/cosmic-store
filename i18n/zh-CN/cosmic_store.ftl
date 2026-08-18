@@ -7,7 +7,7 @@ close = 关闭
 install = 安装
 no-installed-applications = 没有已安装的应用程序。
 no-updates = 所有已安装的应用程序都是最新的。
-no-results = 找不到 "{ $search }" 的结果。
+no-results = 找不到 “{ $search }” 的结果。
 notification-in-progress = 正在进行安装和更新。
 open = 打开
 see-all = 查看全部
@@ -22,7 +22,7 @@ dock = 程序坞
 place-and-refine = 放置并调整
 # Codec dialog
 codec-title = 安装额外的软件包？
-codec-header = "{ $application }" 需要额外的软件包来提供 "{ $description }" 。
+codec-header = “{ $application }” 需要额外的软件包来提供 “{ $description }” 。
 codec-footer =
     在某些国家，使用这些额外的软件包可能受到限制。
     您必须验证以下其中一项是否正确：
@@ -37,14 +37,14 @@ dismiss = 清除消息
 operations-running = { $running } 个操作正在运行（{ $percent }%）…
 operations-running-finished = { $running } 个操作正在运行（{ $percent }%），{ $finished } 个已完成…
 # Repository add error dialog
-repository-add-error-title = "添加远程仓库失败"
+repository-add-error-title = “添加远程仓库失败”
 # Repository remove dialog
-repository-remove-title = 移除 "{ $name }" 远程仓库？
+repository-remove-title = 移除 “{ $name }” 远程仓库？
 repository-remove-body =
     移除该远程仓库将 { $dependency ->
         [none] 删除
-       *[other] 删除 "{ $dependency }" 以及
-    } 以下应用程序。如果再次添加远程仓库，需要重新安装它们。
+       *[other] 删除 “{ $dependency }” 以及
+    }以下应用程序。如果再次添加远程仓库，需要重新安装它们。
 add = 添加
 adding = 正在添加…
 remove = 移除

@@ -106,7 +106,7 @@ repository-remove-title = 移除「{ $name }」軟體庫？
 repository-remove-body =
     移除此軟體庫將 { $dependency ->
         [none] 刪除
-       *[other] 移除 "{ $dependency }" 並刪除
+       *[other] 移除「{ $dependency }」並刪除
     }以下應用程式與項目。若再次新增此軟體庫，將需要重新安裝它們。
 add = 新增
 adding = 添增中...
