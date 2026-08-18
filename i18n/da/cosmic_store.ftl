@@ -6,27 +6,24 @@ checking-for-updates = Søger efter opdateringer...
 install = Installer
 no-installed-applications = Ingen installerede programmer.
 no-updates = Alle installerede programmer er opdateret.
-no-results = Der er ingen resultater med "{$search}".
+no-results = Der er ingen resultater med "{ $search }".
 notification-in-progress = Installationer og opdateringer udføres.
 open = Åbn
 see-all = Se alle
 uninstall = Afinstaller
 update = Opdater
 update-all = Opdater alle
-
 # Progress footer
 details = Detaljer
 dismiss = Luk meddelelse
-operations-running = {$running} operationer kører ({$percent}%)...
-operations-running-finished = {$running} operationer kører ({$percent}%), {$finished} fuldført...
-
+operations-running = { $running } operationer kører ({ $percent }%)...
+operations-running-finished = { $running } operationer kører ({ $percent }%), { $finished } fuldført...
 # Uninstall Dialog
-uninstall-app = Afinstaller {$name}
-uninstall-app-warning = Er du sikker på du vil afinstallere {$name}?
-
+uninstall-app = Afinstaller { $name }
+uninstall-app-warning = Er du sikker på du vil afinstallere { $name }?
 # Nav Pages
 explore = Udforsk
-create = Skab
+create = Opret
 work = Arbejd
 develop = Udvikl
 learn = Lær
@@ -36,7 +33,6 @@ socialize = Socialisér
 utilities = Værktøjer
 installed-apps = Installerede programmer
 updates = Opdateringer
-
 # Explore Pages
 editors-choice = Redaktionens udvalgte
 popular-apps = Populære programmer
@@ -51,16 +47,16 @@ social-networking-apps = Programmer til sociale netværk
 games = Spil
 music-and-video-apps = Musik- & Videoprogrammer
 apps-for-learning = Programmer til læring
-
 # Details Page
-source-installed = {$source} (installeret)
+source-installed = { $source } (installeret)
 developer = Udvikler
-app-developers = {$app}-udviklere
+app-developers = { $app }-udviklere
 monthly-downloads = Flathub månedlige downloads
 licenses = Licenser
 proprietary = Proprietær
 
 ## App URLs
+
 bug-tracker = Fejlsporer
 contact = Kontakt
 donation = Donation
@@ -71,24 +67,31 @@ translate = Oversæt
 
 # Context Pages
 
+
 ## Operations
+
 cancelled = Annulleret
 operations = Operationer
 no-operations = Ingen operationer i historik.
 pending = Afventer
 failed = Mislykkedes
-complete = Fuldført
+complete = Færdigt
 
 ## Settings
+
 settings = Indstillinger
 
 ## Release notes
+
 latest-version = Seneste version
 no-description = Ingen beskrivelse tilgængelig.
 
 ### Appearance
+
 appearance = Udseende
 theme = Tema
-match-desktop = Match systemtema
+match-desktop = Følg skrivebordets indstillinger
 dark = Mørkt
 light = Lyst
+comment = Softwarecenter til COSMIC-skrivebordet
+remove = Fjern

@@ -144,3 +144,6 @@ system-packages-summary =
        *[other] { $count } Pakketten
     }
 flatpak-runtimes = Flatpak runtime-omgevingen
+comment = Appstore voor COSMIC
+keywords = Toepassing;App;Software;Store;Winkel;Appstore;
+loading = Aan het laden…
